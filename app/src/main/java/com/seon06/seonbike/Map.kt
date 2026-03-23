@@ -17,16 +17,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -41,13 +40,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.haze
+import dev.chrisbanes.haze.hazeChild
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
@@ -56,6 +59,7 @@ import kotlin.math.roundToInt
 @Composable
 fun MapView(
     modifier: Modifier = Modifier,
+    hazeState: HazeState? = null,
     defaultZoom: Double = 15.0,
     zoomControlAlignment: Alignment = Alignment.CenterEnd
 ) {
@@ -63,7 +67,11 @@ fun MapView(
 
     Box(modifier = modifier.fillMaxSize()) {
         AndroidView(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (hazeState != null) Modifier.haze(state = hazeState) else Modifier
+                ),
             factory = { context ->
                 MapView(context).apply {
                     setMultiTouchControls(true)
@@ -101,18 +109,20 @@ fun MapView(
         )
 
         ZoomPillControl(
-            mapView = mapView.value,
             modifier = Modifier
                 .align(zoomControlAlignment)
-                .padding(16.dp)
+                .padding(16.dp),
+            mapView = mapView.value,
+            hazeState = hazeState
         )
     }
 }
 
 @Composable
 fun ZoomPillControl(
+    modifier: Modifier = Modifier,
     mapView: MapView?,
-    modifier: Modifier = Modifier
+    hazeState: HazeState? = null
 ) {
     var isSliderMode by remember { mutableStateOf(false) }
     var dragOffset by remember { mutableFloatStateOf(0f) }
@@ -143,6 +153,7 @@ fun ZoomPillControl(
         modifier = modifier
             .size(width = pillWidth, height = pillHeight)
             .scale(contentScale)
+            .clip(RoundedCornerShape(28.dp))
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { offset ->
@@ -183,11 +194,29 @@ fun ZoomPillControl(
                 )
             },
         shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp,
-        shadowElevation = 12.dp
+        color = Color.Transparent,
+        shadowElevation = 0.dp, // 3D 효과 제거
+        tonalElevation = 0.dp   // 3D 효과 제거
     ) {
-        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .requiredWidth(56.dp)
+                .fillMaxHeight()
+                .then(
+                    if (hazeState != null) {
+                        Modifier.hazeChild(
+                            state = hazeState,
+                            style = HazeDefaults.style(
+                                backgroundColor = Color.Transparent,
+                                tint = HazeTint(Color.White.copy(alpha = 0.15f)), // 투명도 조정 (0.02 -> 0.15)
+                                blurRadius = 8.dp,
+                                noiseFactor = 0f
+                            )
+                        )
+                    } else Modifier
+                ),
+            contentAlignment = Alignment.Center
+        ) {
             if (isSliderMode) {
                 val indicatorColor = MaterialTheme.colorScheme.onSurfaceVariant
                 androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize().padding(vertical = 30.dp)) {
@@ -229,7 +258,12 @@ fun ZoomPillControl(
                         tint = MaterialTheme.colorScheme.onSurface, 
                         modifier = Modifier.size(26.dp)
                     )
-                    Box(modifier = Modifier.width(24.dp).height(1.dp).background(MaterialTheme.colorScheme.outlineVariant))
+                    Box(
+                        modifier = Modifier
+                            .width(24.dp)
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                    )
                     androidx.compose.foundation.Canvas(modifier = Modifier.size(12.dp)) {
                         drawLine(
                             color = Color.Black,

@@ -15,12 +15,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
 import com.seon06.seonbike.ui.theme.SeonBikeTheme
+import dev.chrisbanes.haze.HazeState
 import org.osmdroid.config.Configuration
 
 class MainActivity : ComponentActivity() {
@@ -53,7 +55,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SeonBikeTheme {
-                // Scaffold를 사용하되 컨텐츠에는 패딩을 강제하지 않음 (지도가 전체 화면을 쓰기 위함)
                 Scaffold(modifier = Modifier.fillMaxSize()) { _ ->
                     if (isPermissionGranted) {
                         MainView()
@@ -66,10 +67,16 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainView() {
+    val hazeState = remember { HazeState() }
+    
     Box(modifier = Modifier.fillMaxSize()) {
-        MapView(modifier = Modifier.fillMaxSize())
+        MapView(
+            modifier = Modifier.fillMaxSize(),
+            hazeState = hazeState
+        )
         FloatingBar(
             modifier = Modifier.align(Alignment.BottomCenter),
+            hazeState = hazeState,
             onSearch = { q ->
                 Log.i("MainActivity", "Search: $q")
             }

@@ -28,28 +28,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeDefaults
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeChild
 
 @Composable
 fun FloatingBar(
     modifier: Modifier = Modifier,
+    hazeState: HazeState? = null,
     onSearch: (String) -> Unit = {}
 ) {
     var text by remember { mutableStateOf("") }
     
-    // 키보드(IME) 관련 정보 가져오기
     val density = LocalDensity.current
     val imeInsets = WindowInsets.ime
     val imeBottomPadding = imeInsets.asPaddingValues().calculateBottomPadding()
     
-    // 키보드 높이에 따른 오프셋 애니메이션 (Apple 스타일의 탄력 있는 Spring 효과)
     val animatedOffset by animateDpAsState(
         targetValue = if (imeBottomPadding > 0.dp) -imeBottomPadding + 8.dp else 0.dp,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioLowBouncy, // 적당한 탄력
-            stiffness = Spring.StiffnessMediumLow       // 부드러운 속도
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessMediumLow
         ),
         label = "FloatingBarOffset"
     )
@@ -59,11 +64,25 @@ fun FloatingBar(
             .offset(y = animatedOffset)
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .fillMaxWidth()
-            .height(56.dp),
+            .height(56.dp)
+            .clip(CircleShape) // Haze 적용 전 클립
+            .then(
+                if (hazeState != null) {
+                    Modifier.hazeChild(
+                        state = hazeState,
+                        style = HazeDefaults.style(
+                            backgroundColor = Color.Transparent,
+                            tint = HazeTint(Color.White.copy(alpha = 0.15f)), // 투명도를 살짝 낮춤 (0.02 -> 0.15)
+                            blurRadius = 8.dp,
+                            noiseFactor = 0f
+                        )
+                    )
+                } else Modifier
+            ),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 8.dp,
-        shadowElevation = 8.dp
+        color = Color.Transparent,
+        shadowElevation = 0.dp, // 3D 효과(그림자/그라데이션) 제거
+        tonalElevation = 0.dp   // 3D 효과 제거
     ) {
         Row(
             modifier = Modifier
