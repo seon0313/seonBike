@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -198,6 +199,7 @@ fun ZoomPillControl(
         shadowElevation = 0.dp, // 3D 효과 제거
         tonalElevation = 0.dp   // 3D 효과 제거
     ) {
+        // 블러 영역을 최대 크기로 고정하여 애니메이션 중 왜곡 방지
         Box(
             modifier = Modifier
                 .requiredWidth(56.dp)
@@ -208,7 +210,7 @@ fun ZoomPillControl(
                             state = hazeState,
                             style = HazeDefaults.style(
                                 backgroundColor = Color.Transparent,
-                                tint = HazeTint(Color.White.copy(alpha = 0.15f)), // 투명도 조정 (0.02 -> 0.15)
+                                tint = HazeTint(Color.White.copy(alpha = 0.3f)), // 투명도를 살짝 낮춤
                                 blurRadius = 8.dp,
                                 noiseFactor = 0f
                             )

@@ -65,14 +65,14 @@ fun FloatingBar(
             .padding(horizontal = 16.dp, vertical = 24.dp)
             .fillMaxWidth()
             .height(56.dp)
-            .clip(CircleShape) // Haze 적용 전 클립
+            .clip(CircleShape)
             .then(
                 if (hazeState != null) {
                     Modifier.hazeChild(
                         state = hazeState,
                         style = HazeDefaults.style(
                             backgroundColor = Color.Transparent,
-                            tint = HazeTint(Color.White.copy(alpha = 0.15f)), // 투명도를 살짝 낮춤 (0.02 -> 0.15)
+                            tint = HazeTint(Color.White.copy(alpha = 0.3f)), // 투명도를 살짝 낮춤
                             blurRadius = 8.dp,
                             noiseFactor = 0f
                         )
@@ -81,7 +81,7 @@ fun FloatingBar(
             ),
         shape = CircleShape,
         color = Color.Transparent,
-        shadowElevation = 0.dp, // 3D 효과(그림자/그라데이션) 제거
+        shadowElevation = 0.dp, // 3D 효과 제거
         tonalElevation = 0.dp   // 3D 효과 제거
     ) {
         Row(
